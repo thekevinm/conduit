@@ -4,7 +4,7 @@ dist/
 *.dll
 *.so
 *.dylib
-conduit
+/conduit
 
 # Test
 *.test

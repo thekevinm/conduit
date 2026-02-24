@@ -1,0 +1,61 @@
+# Example multi-database configuration for Conduit
+#
+# Usage: conduit --config conduit.yaml
+
+server:
+  host: "localhost"
+  port: 8090
+
+sources:
+  - name: "production"
+    driver: "postgres"
+    dsn: "${DATABASE_URL}"
+    read_only: true
+    max_connections: 10
+    schemas: ["public"]
+    exclude_tables: ["_migrations", "schema_version"]
+    mask_pii: true
+
+  - name: "analytics"
+    driver: "snowflake"
+    dsn: "snowflake://user:pass@account/database/schema?warehouse=WH"
+    read_only: true
+    max_connections: 5
+
+  - name: "local"
+    driver: "sqlite"
+    dsn: "sqlite:///path/to/app.db"
+    allow_writes: true
+
+auth:
+  mode: "apikey"
+  api_keys:
+    - key: "${CONDUIT_API_KEY}"
+      role: "analyst"
+
+roles:
+  - name: "analyst"
+    max_rows_per_query: 5000
+    tables:
+      - name: "*"
+        verbs: ["SELECT"]
+      - name: "users"
+        deny_columns: ["password_hash", "ssn"]
+        mask_columns: ["email"]
+
+  - name: "admin"
+    tables:
+      - name: "*"
+        verbs: ["SELECT", "INSERT", "UPDATE", "DELETE"]
+
+query:
+  max_rows: 10000
+  timeout: "30s"
+
+audit:
+  enabled: true
+  output: "sqlite"
+  retention_days: 30
+
+ui:
+  enabled: true

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  conduit:
+    image: ghcr.io/conduitdb/conduit:latest
+    command:
+      - serve
+      - "postgres://demo:demo@postgres:5432/demo"
+      - "--http"
+      - "--port"
+      - "8090"
+      - "--allow-writes"
+    ports:
+      - "8090:8090"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  pgdata:
