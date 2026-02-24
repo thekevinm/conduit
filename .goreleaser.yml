@@ -1,0 +1,74 @@
+version: 2
+project_name: conduit
+
+before:
+  hooks:
+    - cmd: task frontend:build
+      env: [NODE_ENV=production]
+
+builds:
+  - id: conduit
+    main: ./cmd/conduit
+    binary: conduit
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+nfpms:
+  - id: packages
+    package_name: conduit
+    description: "Auto-generate MCP servers from databases"
+    license: Apache-2.0
+    formats: [deb, rpm, apk]
+
+brews:
+  - repository:
+      owner: conduitdb
+      name: homebrew-tap
+    name: conduit
+    homepage: https://github.com/conduitdb/conduit
+    description: "One binary. Every database. Your AI's data layer."
+    install: |
+      bin.install "conduit"
+
+dockers:
+  - image_templates:
+      - "ghcr.io/conduitdb/conduit:{{ .Version }}-amd64"
+    goos: linux
+    goarch: amd64
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates: ["--platform=linux/amd64"]
+  - image_templates:
+      - "ghcr.io/conduitdb/conduit:{{ .Version }}-arm64"
+    goos: linux
+    goarch: arm64
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates: ["--platform=linux/arm64"]
+
+docker_manifests:
+  - name_template: "ghcr.io/conduitdb/conduit:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/conduitdb/conduit:{{ .Version }}-amd64"
+      - "ghcr.io/conduitdb/conduit:{{ .Version }}-arm64"
+  - name_template: "ghcr.io/conduitdb/conduit:latest"
+    image_templates:
+      - "ghcr.io/conduitdb/conduit:{{ .Version }}-amd64"
+      - "ghcr.io/conduitdb/conduit:{{ .Version }}-arm64"

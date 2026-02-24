@@ -1,0 +1,39 @@
+# Binaries
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+conduit
+
+# Test
+*.test
+*.out
+coverage.txt
+
+# Go
+vendor/
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+frontend/.svelte-kit/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (local)
+*.local.yaml
+.env
+.env.*
+
+# Audit logs
+audit.db

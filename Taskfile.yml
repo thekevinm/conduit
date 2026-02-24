@@ -1,0 +1,57 @@
+version: '3'
+
+vars:
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || echo "dev"
+  BINARY: conduit
+
+tasks:
+  frontend:install:
+    dir: frontend
+    cmds: [npm ci]
+    sources: [frontend/package.json, frontend/package-lock.json]
+    generates: [frontend/node_modules/.package-lock.json]
+
+  frontend:build:
+    dir: frontend
+    deps: [frontend:install]
+    cmds: [npm run build]
+    sources: [frontend/src/**/*]
+    generates: [frontend/build/**/*]
+
+  frontend:dev:
+    dir: frontend
+    deps: [frontend:install]
+    cmds: [npm run dev]
+
+  build:
+    deps: [frontend:build]
+    cmds:
+      - go build -ldflags "-s -w -X main.version={{.VERSION}}" -o dist/{{.BINARY}} ./cmd/conduit
+
+  build:go:
+    desc: "Build Go binary only (skip frontend)"
+    cmds:
+      - go build -ldflags "-s -w -X main.version={{.VERSION}}" -o dist/{{.BINARY}} ./cmd/conduit
+
+  test:
+    cmds: [go test ./... -race -cover]
+
+  test:integration:
+    cmds: [go test ./... -race -cover -tags=integration]
+
+  lint:
+    cmds: [golangci-lint run ./...]
+
+  vet:
+    cmds: [go vet ./...]
+
+  dev:
+    desc: "Start dev server with hot reload"
+    cmds: [go run ./cmd/conduit serve --dev]
+
+  clean:
+    cmds: [rm -rf dist/ frontend/build/ frontend/.svelte-kit/]
+
+  fmt:
+    cmds: [gofmt -w .]
