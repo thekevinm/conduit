@@ -1,8 +1,12 @@
 package cli
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
+	"os"
 
+	"github.com/conduitdb/conduit/internal/demo"
 	"github.com/spf13/cobra"
 )
 
@@ -21,14 +25,37 @@ Perfect for trying out Conduit without setting up a database.`,
 		},
 	}
 
-	cmd.Flags().BoolVar(&httpMode, "http", false, "Use HTTP transport instead of stdio")
+	cmd.Flags().BoolVar(&httpMode, "http", false, "Use HTTP transport with web dashboard")
 	cmd.Flags().IntVarP(&port, "port", "p", 8090, "HTTP server port")
 
 	return cmd
 }
 
 func runDemo(httpMode bool, port int) error {
-	// TODO: Wire up demo mode with embedded SQLite
-	fmt.Println("conduit demo: starting with sample data...")
-	return nil
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+
+	ctx := context.Background()
+
+	logger.Info("creating demo database with sample e-commerce data...")
+	dsn, cleanup, err := demo.CreateDemoDB(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create demo database: %w", err)
+	}
+	defer cleanup()
+	logger.Info("demo database ready", "dsn", dsn)
+
+	fmt.Fprintf(os.Stderr, "\n  Demo mode: using embedded SQLite with sample data\n")
+	fmt.Fprintf(os.Stderr, "  Tables: customers, products, orders, order_items, reviews\n\n")
+
+	flags := serveFlags{
+		stdio:       !httpMode,
+		httpMode:    httpMode,
+		port:        port,
+		host:        "localhost",
+		allowWrites: true,
+		maxRows:     1000,
+	}
+	return runServe(dsn, flags)
 }

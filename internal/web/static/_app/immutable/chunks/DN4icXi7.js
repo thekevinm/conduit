@@ -1,0 +1,1 @@
+import{x as f,j as u,H as _,y as o,v as t,C as g,z as i,A as l,B as d,D as p,F as v}from"./B8-RBE8K.js";function C(n,r){let s=null,y=t;var a;if(t){s=p;for(var e=v(document.head);e!==null&&(e.nodeType!==g||e.data!==n);)e=i(e);if(e===null)l(!1);else{var E=i(e);e.remove(),d(E)}}t||(a=document.head.appendChild(f()));try{u(()=>r(a),_|o)}finally{y&&(l(!0),d(s))}}export{C as h};
