@@ -70,15 +70,25 @@ func (c *Connector) ListTables(ctx context.Context) ([]schema.TableSummary, erro
 	if err != nil {
 		return nil, fmt.Errorf("list tables: %w", err)
 	}
-	defer rows.Close()
 
-	var tables []schema.TableSummary
+	// Collect names first, then close rows before running count queries
+	// (SQLite with MaxOpenConns(1) deadlocks on nested queries).
+	var names []string
 	for rows.Next() {
 		var name string
 		if err := rows.Scan(&name); err != nil {
+			rows.Close()
 			return nil, err
 		}
-		// Get row count.
+		names = append(names, name)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	tables := make([]schema.TableSummary, 0, len(names))
+	for _, name := range names {
 		var count int64
 		if err := c.db.QueryRowContext(ctx,
 			fmt.Sprintf("SELECT COUNT(*) FROM %s", c.QuoteIdentifier(name))).Scan(&count); err != nil {
@@ -90,7 +100,7 @@ func (c *Connector) ListTables(ctx context.Context) ([]schema.TableSummary, erro
 			Type:     "table",
 		})
 	}
-	return tables, rows.Err()
+	return tables, nil
 }
 
 func (c *Connector) DescribeTable(ctx context.Context, tableName string) (*schema.TableDetail, error) {
