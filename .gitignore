@@ -37,3 +37,4 @@ Thumbs.db
 
 # Audit logs
 audit.db
+.claude/worktrees/
