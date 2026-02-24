@@ -15,7 +15,10 @@ tasks:
   frontend:build:
     dir: frontend
     deps: [frontend:install]
-    cmds: [npm run build]
+    cmds:
+      - npm run build
+      - rm -rf ../internal/web/static/*
+      - cp -r build/* ../internal/web/static/
     sources: [frontend/src/**/*]
     generates: [frontend/build/**/*]
 
