@@ -10,6 +10,7 @@
 	let generating = $state(false);
 	let filterTool = $state('');
 	let filterStatus = $state('');
+	let piiMaskingEnabled = $state(true);
 
 	// Demo data
 	const demoApiKeys: ApiKey[] = [
@@ -196,6 +197,91 @@
 					No API keys generated yet. Create one above to secure your endpoint.
 				</div>
 			{/if}
+		</div>
+	</div>
+
+	<!-- PII Masking -->
+	<div class="bg-surface-900 border border-surface-700/50 rounded-xl overflow-hidden">
+		<div class="flex items-center justify-between px-5 py-4 border-b border-surface-700/50">
+			<h2 class="text-sm font-semibold text-slate-200 uppercase tracking-wider">PII Masking</h2>
+			<button
+				onclick={() => (piiMaskingEnabled = !piiMaskingEnabled)}
+				class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {piiMaskingEnabled ? 'bg-accent-500' : 'bg-surface-700'}"
+				aria-label="Toggle PII masking"
+			>
+				<span
+					class="inline-block h-4 w-4 rounded-full bg-white transition-transform {piiMaskingEnabled ? 'translate-x-6' : 'translate-x-1'}"
+				></span>
+			</button>
+		</div>
+
+		<div class="px-5 py-4 border-b border-surface-700/30 bg-surface-800/30">
+			<div class="flex items-center gap-3">
+				<svg class="w-5 h-5 text-accent-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+				</svg>
+				<div>
+					<p class="text-sm text-slate-300">
+						{#if piiMaskingEnabled}
+							PII masking is <span class="text-accent-500 font-medium">enabled</span>. Sensitive columns are automatically detected and masked in query results.
+						{:else}
+							PII masking is <span class="text-rose-400 font-medium">disabled</span>. All column values are returned unmasked.
+						{/if}
+					</p>
+					<p class="text-xs text-slate-500 mt-1">Equivalent to the <code class="text-accent-500/80 bg-surface-800 px-1.5 py-0.5 rounded font-mono text-[11px]">--mask-pii</code> flag</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="overflow-x-auto">
+			<table class="w-full text-xs">
+				<thead>
+					<tr class="bg-surface-800/30">
+						<th class="px-4 py-2.5 text-left text-slate-500 font-medium uppercase tracking-wider">Column Pattern</th>
+						<th class="px-4 py-2.5 text-left text-slate-500 font-medium uppercase tracking-wider">Matches</th>
+						<th class="px-4 py-2.5 text-left text-slate-500 font-medium uppercase tracking-wider">Action</th>
+						<th class="px-4 py-2.5 text-left text-slate-500 font-medium uppercase tracking-wider">Example Output</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-surface-800/30">
+					<tr class="hover:bg-surface-800/20 transition-colors">
+						<td class="px-4 py-2.5 font-mono text-accent-500">*email*</td>
+						<td class="px-4 py-2.5 text-slate-400">Email addresses</td>
+						<td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">Masked</span></td>
+						<td class="px-4 py-2.5 font-mono text-slate-300">k***@example.com</td>
+					</tr>
+					<tr class="hover:bg-surface-800/20 transition-colors">
+						<td class="px-4 py-2.5 font-mono text-accent-500">*phone*, *mobile*</td>
+						<td class="px-4 py-2.5 text-slate-400">Phone numbers</td>
+						<td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">Masked</span></td>
+						<td class="px-4 py-2.5 font-mono text-slate-300">***-***-1234</td>
+					</tr>
+					<tr class="hover:bg-surface-800/20 transition-colors">
+						<td class="px-4 py-2.5 font-mono text-accent-500">*ssn*</td>
+						<td class="px-4 py-2.5 text-slate-400">Social Security numbers</td>
+						<td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">Masked</span></td>
+						<td class="px-4 py-2.5 font-mono text-slate-300">***-**-6789</td>
+					</tr>
+					<tr class="hover:bg-surface-800/20 transition-colors">
+						<td class="px-4 py-2.5 font-mono text-accent-500">*card_number*</td>
+						<td class="px-4 py-2.5 text-slate-400">Credit card numbers</td>
+						<td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">Masked</span></td>
+						<td class="px-4 py-2.5 font-mono text-slate-300">****-****-****-1234</td>
+					</tr>
+					<tr class="hover:bg-surface-800/20 transition-colors">
+						<td class="px-4 py-2.5 font-mono text-accent-500">*password*, *secret*</td>
+						<td class="px-4 py-2.5 text-slate-400">Passwords and secrets</td>
+						<td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase tracking-wider">Excluded</span></td>
+						<td class="px-4 py-2.5 text-slate-500 italic">Column hidden entirely</td>
+					</tr>
+					<tr class="hover:bg-surface-800/20 transition-colors">
+						<td class="px-4 py-2.5 font-mono text-accent-500">*token*, *api_key*</td>
+						<td class="px-4 py-2.5 text-slate-400">Tokens and API keys</td>
+						<td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase tracking-wider">Excluded</span></td>
+						<td class="px-4 py-2.5 text-slate-500 italic">Column hidden entirely</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 	</div>
 

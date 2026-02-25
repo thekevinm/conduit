@@ -11,7 +11,11 @@ import (
 
 	"github.com/conduitdb/conduit/internal/app"
 	"github.com/conduitdb/conduit/internal/connector"
+	_ "github.com/conduitdb/conduit/internal/connector/mssql"
+	_ "github.com/conduitdb/conduit/internal/connector/mysql"
+	_ "github.com/conduitdb/conduit/internal/connector/oracle"
 	_ "github.com/conduitdb/conduit/internal/connector/postgres"
+	_ "github.com/conduitdb/conduit/internal/connector/snowflake"
 	_ "github.com/conduitdb/conduit/internal/connector/sqlite"
 	"github.com/conduitdb/conduit/internal/query"
 	"github.com/conduitdb/conduit/internal/server"
